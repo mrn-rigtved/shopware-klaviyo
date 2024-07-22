@@ -1,27 +1,35 @@
 import template from './klaviyo-integration-settings.html.twig';
 import './klaviyo-integration-settings.scss';
 
-const {Component, Defaults} = Shopware;
-const {Criteria} = Shopware.Data;
+const { Component, Mixin, Defaults } = Shopware;
+const { Criteria } = Shopware.Data;
 
 Component.register('klaviyo-integration-settings', {
     template,
 
     inject: [
         'repositoryFactory',
+        'klaviyoApiKeyValidatorService',
+        'systemConfigApiService',
+    ],
+
+    mixins: [
+        Mixin.getByName('notification')
     ],
 
     data() {
         return {
             isLoading: false,
             isSaveSuccessful: false,
+            isListIdPresent: false,
             privateKeyFilled: false,
             publicKeyFilled: false,
-            listNameFilled: false,
+            listIdFilled: false,
             messageBlankErrorState: null,
             mappingErrorStates: {},
-            config: null,
-            salesChannels: []
+            config: {},
+            savedListId: null,
+            salesChannels: [],
         };
     },
 
@@ -41,7 +49,6 @@ Component.register('klaviyo-integration-settings', {
         },
 
         salesChannelCriteria() {
-            // Limit of 500 is fine according same limits on Shopware's official Paypal plugin.
             const criteria = new Criteria(1, 500);
             criteria.addFilter(Criteria.equalsAny('typeId', [
                 Defaults.storefrontSalesChannelTypeId,
@@ -67,8 +74,8 @@ Component.register('klaviyo-integration-settings', {
             return this.messageBlankErrorState;
         },
 
-        listNameErrorState() {
-            if (this.listNameFilled) {
+        listIdErrorState() {
+            if (this.listIdFilled) {
                 return null;
             }
 
@@ -82,7 +89,7 @@ Component.register('klaviyo-integration-settings', {
 
             return !this.privateKeyFilled
                 || !this.publicKeyFilled
-                || !this.listNameFilled
+                || !this.listIdFilled
                 || hasMappingErrors;
         }
     },
@@ -96,13 +103,38 @@ Component.register('klaviyo-integration-settings', {
                 if (channelId !== null && accountEnabled) {
                     this.privateKeyFilled = !!this.config['klavi_overd.config.privateApiKey'];
                     this.publicKeyFilled = !!this.config['klavi_overd.config.publicApiKey'];
-                    this.listNameFilled = !!this.config['klavi_overd.config.klaviyoListForSubscribersSync'];
+                    this.listIdFilled = !!this.config['klavi_overd.config.klaviyoListForSubscribersSync'];
+
+                    if (!this.savedListId) {
+                        this.savedListId = this.config['klavi_overd.config.klaviyoListForSubscribersSync'];
+                    } else {
+                        if (this.savedListId !== this.config['klavi_overd.config.klaviyoListForSubscribersSync']) {
+                            if (this.privateKeyFilled && this.publicKeyFilled && this.listIdFilled) {
+                                this.validateNewsletterListId(this.config['klavi_overd.config.klaviyoListForSubscribersSync']);
+                                this.savedListId = this.config['klavi_overd.config.klaviyoListForSubscribersSync'];
+                            }
+                        }
+                    }
                 } else {
-                    this.privateKeyFilled = this.publicKeyFilled = this.listNameFilled = true;
+                    this.privateKeyFilled = this.publicKeyFilled = this.listIdFilled = true;
                 }
             },
             deep: true,
         },
+
+        newsletterListId: {
+            handler() {
+                const channelId = this.$refs.configComponent.selectedSalesChannelId;
+                const accountEnabled = !!this.config['klavi_overd.config.enabled'];
+
+                if (channelId !== null && accountEnabled) {
+                    if (this.privateKeyFilled && this.publicKeyFilled && this.listIdFilled) {
+                        this.validateNewsletterListId(this.config['klavi_overd.config.klaviyoListForSubscribersSync']);
+                    }
+                }
+            },
+            deep: true,
+        }
     },
 
     methods: {
@@ -111,12 +143,8 @@ Component.register('klaviyo-integration-settings', {
 
             this.messageBlankErrorState = {
                 code: 1,
-                detail: this.$tc('klaviyo-integration-settings.configs.credentials.messageNotBlank'),
+                detail: Shopware.Snippet.tc('klaviyo-integration-settings.configs.credentials.messageNotBlank'),
             };
-        },
-
-        onChangeLanguage() {
-            this.getSalesChannels();
         },
 
         getSalesChannels() {
@@ -125,7 +153,7 @@ Component.register('klaviyo-integration-settings', {
                 res.add({
                     id: null,
                     translated: {
-                        name: this.$tc('sw-sales-channel-switch.labelDefaultOption'),
+                        name: Shopware.Snippet.tc('sw-sales-channel-switch.labelDefaultOption'),
                     },
                 });
 
@@ -135,18 +163,53 @@ Component.register('klaviyo-integration-settings', {
             });
         },
 
-        onSave() {
+        async onSave() {
             if (this.hasError) {
                 return;
             }
 
             this.isLoading = true;
+            const newsletterListId = this.config['klavi_overd.config.klaviyoListForSubscribersSync'];
+
+            if (newsletterListId) {
+                await this.validateNewsletterListId(newsletterListId);
+
+                if (!this.isListIdPresent) {
+                   this.isLoading = false;
+                   this.isSaveSuccessful = false;
+                   return;
+                }
+            }
 
             this.$refs.configComponent.save().then(() => {
                 this.isSaveSuccessful = true;
             }).finally(() => {
                 this.isLoading = false;
             });
+        },
+
+        async validateNewsletterListId(newsletterListId) {
+            const privateKey = this.config['klavi_overd.config.privateApiKey'];
+            const publicKey = this.config['klavi_overd.config.publicApiKey'];
+            this.isListIdPresent = false;
+
+            try {
+                const response = await this.klaviyoApiKeyValidatorService.validateListById(privateKey, publicKey, newsletterListId);
+
+                if (!response.data || !response.data.data) {
+                    this.isListIdPresent = false;
+                    this.createNotificationError({
+                        message: Shopware.Snippet.tc('klaviyo-integration-settings.configs.apiValidation.listNotExistMessage'),
+                    });
+                } else if (response.data.data[0].value === newsletterListId) {
+                    this.isListIdPresent = true;
+                }
+            } catch (error) {
+                this.isListIdPresent = false;
+                this.createNotificationError({
+                    message: Shopware.Snippet.tc('klaviyo-integration-settings.configs.apiValidation.listNotExistMessage'),
+                });
+            }
         }
     }
 });

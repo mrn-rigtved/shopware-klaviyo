@@ -17,6 +17,12 @@ class OrderedProductEventTrackingRequestNormalizer extends AbstractNormalizer
 
         unset($customerProperties['phone_number']);
 
+        $categories = '';
+
+        if (!empty($object->getCategories())) {
+            $categories = implode(',', $object->getCategories());
+        }
+
         $properties = [
             'ProductName' => $object->getProductName(),
             'OrderId' => $object->getOrderId(),
@@ -25,7 +31,7 @@ class OrderedProductEventTrackingRequestNormalizer extends AbstractNormalizer
             'Quantity' => $object->getQuantity(),
             'ProductURL' => $object->getProductURL(),
             'ImageURL' => $object->getImageURL(),
-            'Categories' => $object->getCategories(),
+            'Categories' => $categories,
             'ProductBrand' => $object->getProductBrand()
         ];
 
@@ -57,8 +63,15 @@ class OrderedProductEventTrackingRequestNormalizer extends AbstractNormalizer
         ];
     }
 
-    public function supportsNormalization($data, string $format = null): bool
+    public function supportsNormalization($data, string $format = null, array $context = []): bool
     {
         return $data instanceof OrderedProductEventTrackingRequest;
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [
+            OrderedProductEventTrackingRequest::class => true,
+        ];
     }
 }

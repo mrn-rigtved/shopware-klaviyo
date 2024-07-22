@@ -1,3 +1,18 @@
+# 3.0.0
+# Kompatibilitätsfreigabe mit Shopware 6.6^
+# Fix: Fehler beim Speichern der Plugin-Einstellungen behoben, wenn ein Wert in das Feld Listen-ID für Abonnenten-Synchronisation eingefügt wurde.
+
+# 2.13.3
+# Fix: Korrektur von mehrfachen Ladesätzen in der Auflistung.
+# Fix: Ändern des Datentyps bei der Übertragung von Produktkategorien in Bestellvorgängen.
+
+# 2.13.2
+# Fix: Es wurde ein Fehler behoben, wenn das Ereignis SwitchBuyBoxVariantEvent auf dem Widget ausgelöst wurde. Behebung von Abhängigkeiten in der Vorlage.
+
+# 2.13.1
+# Fix: Ein Problem mit der fehlenden Listen-ID von Abonnenten im PDP wurde behoben. Das Speichern der Listen-ID von Abonnenten in den Plugin-Einstellungen wurde neu gestaltet.
+# Fix: Es wurde ein Fehler behoben, wenn das Ereignis SwitchBuyBoxVariantEvent auf der PDP ausgelöst wurde.
+
 # 2.13.0
 # Neu: Die API-Revision wurde auf die neueste Version aktualisiert.
 # Neu: Um die Arbeit zu optimieren und die Leistung zu verbessern, wurde eine separate Cron-Aufgabe hinzugefügt, um ausgeschlossene Abonnenten zu synchronisieren.
@@ -42,7 +57,6 @@
 # 2.8.3
 # Fix: Das Ereignis „Zum Warenkorb hinzufügen“ wird jetzt im Echtzeitmodus und nicht nach einem Zeitplan ausgelöst
 # Fix: Ein Fehler beim Ausführen asynchroner Abonnementvorgänge wurde behoben
-# Fix: Ein Problem beim Synchronisieren von Bestellungen mit gelöschten Kunden wurde behoben
 
 # 2.8.3
 # Fix: Es wurde ein Problem behoben, bei dem bei einem produktbezogenen Ereignis der Produktname fehlte
