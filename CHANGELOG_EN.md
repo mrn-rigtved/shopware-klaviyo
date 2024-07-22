@@ -1,3 +1,7 @@
+# 3.0.0
+# Compatibility release with Shopware 6.6^
+# Fix: Fixed an error in saving plugin settings when inserting a value into the List ID for subscribers sync field
+
 # 2.13.3
 # Fix: Correction of multiple loading records in listing.
 # Fix: Changing the type of data when transferring product categories in order events.
@@ -52,7 +56,6 @@
 # 2.8.3
 # Fix: The add to cart event is now triggered in real time mode, and not according to a schedule
 # Fix: Fixed a bug when performing asynchronous subscription operations.
-# Fix: Fixed a problem with synchronizing orders with deleted customers.
 
 
 # 2.8.2

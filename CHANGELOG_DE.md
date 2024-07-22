@@ -1,3 +1,7 @@
+# 3.0.0
+# Kompatibilitätsfreigabe mit Shopware 6.6^
+# Fix: Fehler beim Speichern der Plugin-Einstellungen behoben, wenn ein Wert in das Feld Listen-ID für Abonnenten-Synchronisation eingefügt wurde.
+
 # 2.13.3
 # Fix: Korrektur von mehrfachen Ladesätzen in der Auflistung.
 # Fix: Ändern des Datentyps bei der Übertragung von Produktkategorien in Bestellvorgängen.
@@ -53,7 +57,6 @@
 # 2.8.3
 # Fix: Das Ereignis „Zum Warenkorb hinzufügen“ wird jetzt im Echtzeitmodus und nicht nach einem Zeitplan ausgelöst
 # Fix: Ein Fehler beim Ausführen asynchroner Abonnementvorgänge wurde behoben
-# Fix: Ein Problem beim Synchronisieren von Bestellungen mit gelöschten Kunden wurde behoben
 
 # 2.8.3
 # Fix: Es wurde ein Problem behoben, bei dem bei einem produktbezogenen Ereignis der Produktname fehlte
