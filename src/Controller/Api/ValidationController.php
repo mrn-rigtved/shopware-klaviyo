@@ -31,9 +31,9 @@ class ValidationController extends AbstractController
     {
         $publicKey = $post->get('publicKey');
         $privateKey = $post->get('privateKey');
-        $listId = $post->get('listId');
+        $listName = $post->get('listName');
 
-        if (empty($listId) || empty($publicKey) || empty($privateKey)) {
+        if (empty($listName) || empty($publicKey) || empty($privateKey)) {
             return new JsonResponse(['invalid_parameters' => true], Response::HTTP_OK);
         }
 
@@ -47,7 +47,7 @@ class ValidationController extends AbstractController
         }
 
         try {
-            $response = $this->getAllProfileLists(new GetProfilesListsRequest(null, $listId));
+            $response = $this->getAllProfileLists(new GetProfilesListsRequest(null, $listName));
             $accountResponse = $responses->getRequestResponse($accountRequest);
         } catch (\Exception $e) {
             return new JsonResponse(['general_error' => true], Response::HTTP_OK);
